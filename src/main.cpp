@@ -5,14 +5,25 @@
 #include <Adafruit_BMP085.h>
 #include <Wire.h>
 
+#include <PubSubClient.h>
+
 // Data wire is plugged into port 2 on the Arduino
 #define ONE_WIRE_BUS 2
 #define RAIN_SENSOR 14
 #define WIND_SENSOR 13
 
-// Time to sleep (in seconds):
+#define VERSION 1.0
+
+// Time to sleep (iconst char* ssid = "........";
 const int sleepTimeS = 10;
 
+const char* ssid = "........";
+const char* password = "........");
+
+const char* mqtt_server = "mqtt.home.rondoe.com";
+
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
@@ -23,6 +34,9 @@ DallasTemperature sensors(&oneWire);
 
 
 Adafruit_BMP085 bmp;
+
+//at the beginning of sketch
+ADC_MODE(ADC_VCC); //vcc read
 
 
 /**
@@ -55,6 +69,7 @@ void readSensors() {
 
   Serial.print("Temperature for the device 1 (index 0) is: ");
   Serial.println(sensors.getTempCByIndex(0));
+  client.publish("myhome/", "hello world");
 
 
   Serial.print("Temperature = ");
@@ -104,6 +119,12 @@ void readSensors() {
   Serial.print(" ");
   Serial.print(speed * 3.6);
   Serial.println("km/h");
+
+
+
+  //get voltage
+  float vdd = ESP.getVcc() / 1000.0;
+
   digitalWrite(LED_BUILTIN, LOW);
 }
 
@@ -112,12 +133,20 @@ void readSensors() {
 void setup()
 {
   // initialize LED digital pin as an output.
+  Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
 
   attachInterrupt(WIND_SENSOR, rpm_vent, FALLING);
 
-  Serial.begin(115200);
-  Serial.println("Dallas Temperature IC Control Library Demo");
+    WiFi.begin(ssid, password);
+
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print(".");
+    }
+
+    client.setServer(mqtt_server, 1883);
+
 
   // Start up the library
 sensors.begin();
