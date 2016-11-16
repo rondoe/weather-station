@@ -28,7 +28,7 @@
 #define RAIN_SENSOR 14
 #define WIND_SENSOR 13
 
-#define VERSION 1.0
+const char* VERSION="1.0";
 
 // Time to sleep (iconst char* ssid = "........";
 const int sleepTimeS = 10;
@@ -231,7 +231,7 @@ void setupWifi() {
 
         // OTA updated
 
-        t_httpUpdate_return ret = ESPhttpUpdate.update("ota.rondoe.com", 80, "/esp/arduino", "1.0");
+        t_httpUpdate_return ret = ESPhttpUpdate.update("ota.rondoe.com", 80, "/esp/arduino", VERSION);
         switch(ret) {
         case HTTP_UPDATE_FAILED:
                 Serial.println("[update] Update failed.");
@@ -283,6 +283,7 @@ void readConfig() {
                                         Serial.println("failed to load json config");
                                 }
                         }
+                        configFile.close();
                 }
         } else {
                 Serial.println("failed to mount FS");
