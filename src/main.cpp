@@ -14,6 +14,7 @@
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h>
+#include <ESP8266httpUpdate.h>
 
 #include <ArduinoJson.h>
 #include "Arduino.h"
@@ -162,7 +163,7 @@ void setupWifi() {
 
 
         if(!configOk) {
-          wifiManager.resetSettings();
+                wifiManager.resetSettings();
         }
 
         // The extra parameters to be configured (can be either global or just in the setup)
@@ -227,6 +228,22 @@ void setupWifi() {
         Serial.println("local ip");
         Serial.println(WiFi.localIP());
 
+
+        // OTA updated
+
+        t_httpUpdate_return ret = ESPhttpUpdate.update("ota.rondoe.com", 80, "/esp/arduino", "1.0");
+        switch(ret) {
+        case HTTP_UPDATE_FAILED:
+                Serial.println("[update] Update failed.");
+                break;
+        case HTTP_UPDATE_NO_UPDATES:
+                Serial.println("[update] Update no Update.");
+                break;
+        case HTTP_UPDATE_OK:
+                Serial.println("[update] Update ok."); // may not called we reboot the ESP
+                break;
+        }
+
 }
 
 void readConfig() {
@@ -255,12 +272,12 @@ void readConfig() {
                                                 strcpy(mqtt_prefix, json["mqtt_prefix"]);
                                         }
                                         else {
-                                          configOk = false;
+                                                configOk = false;
                                         }
                                         if(json.containsKey("mqtt_node")) {
                                                 strcpy(mqtt_node, json["mqtt_node"]);
                                         } else {
-                                          configOk = false;
+                                                configOk = false;
                                         }
                                 } else {
                                         Serial.println("failed to load json config");
